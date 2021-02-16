@@ -57,7 +57,7 @@ class Player {
         this.walkDirection = 0; // -1 if back, +1 if front
         this.rotationAngle = Math.PI / 2;
         this.moveSpeed = 2.0;
-        this.rotationSpeed = 1 * (Math.PI / 180);
+        this.rotationSpeed = 2 * (Math.PI / 180);
     }
     update() {
         this.rotationAngle += this.turnDirection * this.rotationSpeed;
@@ -129,12 +129,9 @@ class Ray {
         var nextHorzTouchX = xintercept;
         var nextHorzTouchY = yintercept;
 
-        if (this.isRayFacingUp)
-            nextHorzTouchY--;
-
         // Increment xstep and ystep until we find a wall
         while (nextHorzTouchX >= 0 && nextHorzTouchX <= WINDOW_WIDTH && nextHorzTouchY >= 0 && nextHorzTouchY <= WINDOW_HEIGHT) {
-            if (grid.hasWallAt(nextHorzTouchX, nextHorzTouchY)) {
+            if (grid.hasWallAt(nextHorzTouchX, nextHorzTouchY - (this.isRayFacingUp ? 1 : 0))) {
                 foundHorzWallHit = true;
                 horzWallHitX = nextHorzTouchX;
                 horzWallHitY = nextHorzTouchY;
@@ -144,7 +141,6 @@ class Ray {
                 nextHorzTouchY += ystep;
             }
         }
-        console.log(horzWallHitX, horzWallHitY)
         
         ///////////////////////////////////////////
         // VERTICAL RAY-GRID INTERSECTION CODE
@@ -154,29 +150,26 @@ class Ray {
         var vertWallHitY = 0;
 
         // Find the x-coordinate of the closest vertical grid intersenction
-        xintercept = Math.floor(player.x / TILE_SIZE) * TILE_SIZE; // Ax = [Px / 32] * 32
+        xintercept = Math.floor(player.x / TILE_SIZE) * TILE_SIZE;
         xintercept += this.isRayFacingRight ? TILE_SIZE : 0;
 
         // Find the y-coordinate of the closest vertical grid intersection
-        yintercept = player.y + (xintercept - player.x) * Math.tan(this.rayAngle); //Ay = Py + (Ax - Px) * tan(a)
+        yintercept = player.y + (xintercept - player.x) * Math.tan(this.rayAngle);
 
         // Calculate the increment xstep and ystep
         xstep = TILE_SIZE;
         xstep *= this.isRayFacingLeft ? -1 : 1;
 
-        ystep = TILE_SIZE * Math.tan(this.rayAngle); //ystep = 32 * tan(a);
+        ystep = TILE_SIZE * Math.tan(this.rayAngle);
         ystep *= (this.isRayFacingUp && ystep > 0) ? -1 : 1;
         ystep *= (this.isRayFacingDown && ystep < 0) ? -1 : 1;
 
         var nextVertTouchX = xintercept;
         var nextVertTouchY = yintercept;
 
-        if (this.isRayFacingLeft)
-            nextVertTouchX--;
-
         // Increment xstep and ystep until we find a wall
         while (nextVertTouchX >= 0 && nextVertTouchX <= WINDOW_WIDTH && nextVertTouchY >= 0 && nextVertTouchY <= WINDOW_HEIGHT) {
-            if (grid.hasWallAt(nextVertTouchX, nextVertTouchY)) {
+            if (grid.hasWallAt(nextVertTouchX - (this.isRayFacingLeft ? 1 : 0), nextVertTouchY)) {
                 foundVertWallHit = true;
                 vertWallHitX = nextVertTouchX;
                 vertWallHitY = nextVertTouchY;
@@ -257,12 +250,12 @@ function castAllRays() {
     rays = [];
 
     // loop all columns casting the rays
-    for (var i = 0; i < 3; i++) {
+    for (var i = 0; i < 60; i++) {
         var ray = new Ray(rayAngle);
         ray.cast(columnId);
         rays.push(ray);
 
-        rayAngle += FOV_ANGLE / 3;
+        rayAngle += FOV_ANGLE / 60;
 
         columnId++;
     }
